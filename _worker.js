@@ -99,11 +99,11 @@ export default {
           msg: "解析接口调用失败",
           error: fetchError.message,
           api_url: apiUrl,
-          _metadata: {
-            original_api: apiUrl,
-            original_link: targetUrl,
-            original_response: null,
-            standardized_time: getBeijingTime()
+          "元数据": {
+            "原始接口": apiUrl,
+            "原始链接": targetUrl,
+            "原始响应": null,
+            "标准化时间": getBeijingTime()
           }
         }, null, 2), {
           headers: { 
@@ -119,10 +119,10 @@ export default {
       
       // 无论成功失败，都保留原始数据到元数据
       const baseMetadata = {
-        original_api: apiUrl,
-        original_link: targetUrl,
-        original_response: parserData, // 始终保留原始解析接口的完整JSON数据
-        standardized_time: getBeijingTime()
+        "原始接口": apiUrl,
+        "原始链接": targetUrl,
+        "原始响应": parserData, // 始终保留原始解析接口的完整JSON数据
+        "标准化时间": getBeijingTime()
       };
 
       if (!isSuccess) {
@@ -131,7 +131,7 @@ export default {
           code: parserData.code || 500,
           msg: parserData.msg || parserData.message || "解析接口返回错误",
           data: parserData.data || null,
-          _metadata: baseMetadata
+          "元数据": baseMetadata
         }, null, 2), {
           headers: { 
             'Content-Type': 'application/json;charset=UTF-8',
@@ -149,7 +149,7 @@ export default {
         // 标准化失败，返回错误JSON（同时保留原始数据）
         return new Response(JSON.stringify({
           ...standardizedData,
-          _metadata: baseMetadata
+          "元数据": baseMetadata
         }, null, 2), {
           headers: { 
             'Content-Type': 'application/json;charset=UTF-8',
@@ -162,8 +162,8 @@ export default {
       // 3. 返回标准化的JSON（包含原始数据元数据）
       const finalResponse = {
         ...standardizedData,
-        _metadata: {
-          ...(standardizedData._metadata || {}),
+        "元数据": {
+          ...(standardizedData["元数据"] || {}),
           ...baseMetadata
         }
       };
@@ -180,8 +180,8 @@ export default {
         code: 500,
         msg: "服务器错误",
         error: error.message,
-        _metadata: {
-          standardized_time: getBeijingTime()
+        "元数据": {
+          "标准化时间": getBeijingTime()
         }
       }, null, 2), {
         headers: { 'Content-Type': 'application/json;charset=UTF-8' },
