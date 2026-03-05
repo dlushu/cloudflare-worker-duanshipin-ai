@@ -2,7 +2,6 @@
 // 支持多接口按序号选择，严格错误处理，北京时间标准化时间
 // 元数据保留原始解析接口JSON数据
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 // 预定义解析接口列表（序号从1开始）
 const API_LIST = [
   'https://apis.kit9.cn/api/aggregate_videos/api.php?link=',  // 接口1 - 聚合视频解析
@@ -24,10 +23,6 @@ export default {
     }
 
     try {
-      // 从环境变量获取DeepSeek API Key
-      // 需要在Cloudflare Workers仪表板中设置环境变量 DEEPSEEK_API_KEY
-      const DEEPSEEK_API_KEY = env.DEEPSEEK_API_KEY;
-      
       const url = new URL(request.url);
       const targetUrl = url.searchParams.get('url');
       const apiIndexParam = url.searchParams.get('api'); // 序号（从1开始）或完整URL
@@ -147,7 +142,7 @@ export default {
       }
 
       // 2. 调用DeepSeek API标准化数据
-      const standardizedData = await standardizeWithDeepSeek(parserData, targetUrl, apiUrl);
+      const standardizedData = await standardizeWithDeepSeek(parserData, targetUrl, apiUrl, env);
 
       // 检查标准化是否成功
       if (standardizedData.code && standardizedData.code !== 200) {
@@ -226,8 +221,17 @@ function getBeijingTime() {
 /**
  * 调用DeepSeek API标准化内容数据
  */
-async function standardizeWithDeepSeek(parserData, originalUrl, apiUrl) {
+async function standardizeWithDeepSeek(parserData, originalUrl, apiUrl, env) {
   try {
+    // 从环境变量中获取DeepSeek API密钥
+    const DEEPSEEK_API_KEY = env.DEEPSEEK_API_KEY;
+    const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+    
+    // 检查API密钥是否存在
+    if (!DEEPSEEK_API_KEY) {
+      throw new Error('DeepSeek API密钥未配置');
+    }
+
     const prompt = `
 你是一个内容解析数据标准化助手。请将以下任意内容解析API返回的数据，转换为统一的JSON格式。
 
